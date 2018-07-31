@@ -9,7 +9,6 @@ Lecture 03
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 
-import numpy as np
 import tensorflow as tf
 import time
 
@@ -34,26 +33,24 @@ train_data = train_data.shuffle(10000) # if you want to shuffle your data
 train_data = train_data.batch(batch_size)
 
 # create testing Dataset and batch it
-test_data = None
-#############################
-########## TO DO ############
-#############################
-
+test_data = tf.data.Dataset.from_tensor_slices(test)
+test_data = test_data.batch(batch_size)
 
 # create one iterator and initialize it with different datasets
 iterator = tf.data.Iterator.from_structure(train_data.output_types, 
                                            train_data.output_shapes)
 img, label = iterator.get_next()
 
-train_init = iterator.make_initializer(train_data)	# initializer for train_data
-test_init = iterator.make_initializer(test_data)	# initializer for train_data
+train_init = iterator.make_initializer(train_data)  # initializer for train_data
+test_init = iterator.make_initializer(test_data)    # initializer for test_data
 
 # Step 3: create weights and bias
 # w is initialized to random variables with mean of 0, stddev of 0.01
 # b is initialized to 0
 # shape of w depends on the dimension of X and Y so that Y = tf.matmul(X, w)
 # shape of b depends on Y
-w, b = None, None
+w = tf.Variable(initial_value=tf.random_normal([img.shape[1].value, label.shape[1].value]))
+b = tf.Variable(initial_value=0, dtype=tf.float32)
 #############################
 ########## TO DO ############
 #############################
@@ -62,26 +59,16 @@ w, b = None, None
 # Step 4: build model
 # the model that returns the logits.
 # this logits will be later passed through softmax layer
-logits = None
-#############################
-########## TO DO ############
-#############################
+logits = tf.add(tf.matmul(img, w), b)
 
 
 # Step 5: define loss function
 # use cross entropy of softmax of logits as the loss function
-loss = None
-#############################
-########## TO DO ############
-#############################
-
+loss = tf.losses.softmax_cross_entropy(label, logits)
 
 # Step 6: define optimizer
-# using Adamn Optimizer with pre-defined learning rate to minimize loss
-optimizer = None
-#############################
-########## TO DO ############
-#############################
+# using Adam Optimizer with pre-defined learning rate to minimize loss
+optimizer = tf.train.AdamOptimizer(learning_rate).minimize(loss)
 
 
 # Step 7: calculate accuracy with test set
